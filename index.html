@@ -1,0 +1,2227 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mario Aziz Framework</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════════
+   DESIGN TOKENS — BLACK × YELLOW
+══════════════════════════════════════════ */
+:root {
+  --bg:        #0B0B0B;
+  --card:      #111111;
+  --card2:     #161616;
+  --accent:    #FFD600;
+  --glow:      rgba(255,214,0,0.15);
+  --glow-sm:   rgba(255,214,0,0.08);
+  --border:    rgba(255,255,255,0.08);
+  --border-y:  rgba(255,214,0,0.25);
+  --text:      #FFFFFF;
+  --text-2:    #B3B3B3;
+  --text-3:    #555555;
+  --red:       #FF4C4C;
+  --green:     #4CFF8F;
+  --radius:    14px;
+  --radius-sm: 9px;
+  --shadow:    0 8px 32px rgba(0,0,0,0.6);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Tajawal', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  line-height: 1.7;
+}
+
+/* Subtle grid texture */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(255,214,0,0.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,214,0,0.018) 1px, transparent 1px);
+  background-size: 56px 56px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ══════════════════════════════════════════
+   HEADER
+══════════════════════════════════════════ */
+.header {
+  position: sticky; top: 0; z-index: 100;
+  padding: 18px 32px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(11,11,11,0.95);
+  backdrop-filter: blur(20px);
+  display: flex; align-items: center;
+  justify-content: space-between; gap: 16px;
+  flex-wrap: wrap;
+}
+
+.header-brand {
+  display: flex; align-items: center; gap: 14px;
+  cursor: pointer; text-decoration: none;
+  user-select: none;
+}
+
+.header-logo {
+  width: 42px; height: 42px;
+  background: var(--accent);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 0 0 rgba(255,214,0,0);
+}
+.header-brand:hover .header-logo {
+  transform: scale(1.06);
+  box-shadow: 0 0 20px var(--glow);
+}
+
+.header-title {
+  font-size: clamp(15px, 2vw, 20px);
+  font-weight: 900;
+  letter-spacing: -0.3px;
+  color: var(--text);
+}
+
+.header-right {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
+
+.status-dot {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 11px; font-weight: 700;
+  color: var(--green);
+  background: rgba(76,255,143,0.08);
+  border: 1px solid rgba(76,255,143,0.2);
+  border-radius: 30px; padding: 6px 12px;
+}
+.status-dot::before {
+  content: ''; width: 6px; height: 6px;
+  background: var(--green); border-radius: 50%;
+  box-shadow: 0 0 6px var(--green);
+  animation: blink 2s infinite;
+}
+
+#header-client-badge {
+  font-size: 12px; font-weight: 700;
+  color: var(--accent);
+  background: var(--glow-sm);
+  border: 1px solid var(--border-y);
+  border-radius: 30px; padding: 6px 12px;
+  display: none; align-items: center; gap: 6px;
+}
+
+/* Focus Mode toggle in header */
+.focus-toggle {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 11px; font-weight: 700;
+  color: var(--text-2);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 30px; padding: 6px 14px;
+  cursor: pointer; transition: all 0.2s;
+}
+.focus-toggle:hover { border-color: var(--border-y); color: var(--accent); }
+.focus-toggle.active { color: var(--accent); border-color: var(--border-y); background: var(--glow-sm); }
+
+@keyframes blink {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.8); }
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ══════════════════════════════════════════
+   MAIN LAYOUT
+══════════════════════════════════════════ */
+.main {
+  position: relative; z-index: 5;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 36px 24px 80px;
+}
+
+/* Views */
+#view-clients   { display: block; }
+#view-dashboard { display: none; }
+
+/* ══════════════════════════════════════════
+   CLIENTS VIEW
+══════════════════════════════════════════ */
+.page-title {
+  text-align: center;
+  margin-bottom: 40px;
+  animation: fadeUp 0.4s ease both;
+}
+.page-title h2 {
+  font-size: clamp(20px, 3vw, 28px);
+  font-weight: 800; color: var(--text);
+  margin-bottom: 6px;
+}
+.page-title p { color: var(--text-3); font-size: 13px; }
+
+/* Add client */
+.add-client-bar {
+  display: flex; gap: 10px;
+  margin-bottom: 30px;
+  animation: fadeUp 0.4s ease 0.05s both;
+  flex-wrap: wrap;
+}
+
+.add-client-bar input {
+  flex: 1; min-width: 140px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: 'Tajawal', sans-serif;
+  font-size: 14px;
+  padding: 11px 15px;
+  direction: rtl;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.add-client-bar input::placeholder { color: var(--text-3); }
+.add-client-bar input:focus {
+  outline: none;
+  border-color: var(--border-y);
+  box-shadow: 0 0 0 3px var(--glow-sm);
+}
+
+.btn-yellow {
+  display: flex; align-items: center; gap: 7px;
+  background: var(--accent);
+  border: none; border-radius: var(--radius-sm);
+  color: #0B0B0B;
+  font-family: 'Tajawal', sans-serif;
+  font-size: 14px; font-weight: 800;
+  padding: 11px 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap; flex-shrink: 0;
+}
+.btn-yellow:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px var(--glow);
+}
+.btn-yellow:active { transform: translateY(0); }
+
+/* Section divider */
+.divider {
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 2.5px; text-transform: uppercase;
+  color: var(--text-3);
+  display: flex; align-items: center; gap: 12px;
+  margin: 28px 0 20px;
+  animation: fadeUp 0.4s ease 0.08s both;
+}
+.divider::before, .divider::after {
+  content: ''; flex: 1; height: 1px; background: var(--border);
+}
+
+/* Client cards grid */
+.clients-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.client-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  cursor: pointer;
+  transition: transform 0.22s, box-shadow 0.22s, border-color 0.22s;
+  position: relative; overflow: hidden;
+  animation: fadeUp 0.4s ease both;
+}
+.client-card::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: var(--glow-sm);
+  opacity: 0; transition: opacity 0.3s;
+}
+.client-card:hover::before { opacity: 1; }
+.client-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.5), 0 0 0 1px var(--accent);
+  border-color: var(--accent);
+}
+
+.cc-top {
+  display: flex; align-items: center;
+  justify-content: space-between; margin-bottom: 12px;
+}
+.cc-left { display: flex; align-items: center; gap: 10px; }
+
+.cc-avatar {
+  width: 42px; height: 42px;
+  border-radius: 10px;
+  background: var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px; font-weight: 900; color: #0B0B0B;
+  flex-shrink: 0; position: relative; z-index: 1;
+}
+
+.cc-actions {
+  display: flex; align-items: center; gap: 5px;
+  position: relative; z-index: 2;
+}
+
+.cc-btn {
+  width: 28px; height: 28px;
+  border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+  opacity: 0;
+}
+.client-card:hover .cc-btn { opacity: 1; }
+
+.cc-link-btn {
+  background: rgba(255,214,0,0.08);
+  border: 1px solid rgba(255,214,0,0.2);
+  color: var(--accent);
+}
+.cc-link-btn:hover { background: rgba(255,214,0,0.2); transform: scale(1.1); }
+/* Always visible link btn */
+.cc-link-always { opacity: 1 !important; }
+
+.cc-delete-btn {
+  background: rgba(255,76,76,0.08);
+  border: 1px solid rgba(255,76,76,0.18);
+  color: var(--red);
+}
+.cc-delete-btn:hover { background: rgba(255,76,76,0.2); transform: scale(1.1); }
+
+.cc-name {
+  font-size: 15px; font-weight: 700; color: var(--text);
+  margin-bottom: 3px; position: relative; z-index: 1;
+}
+.cc-last-session {
+  font-size: 11px; color: var(--text-3); margin-bottom: 12px;
+  position: relative; z-index: 1;
+}
+
+.cc-status-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 10px; font-weight: 700;
+  padding: 3px 10px; border-radius: 20px;
+  margin-bottom: 12px; position: relative; z-index: 1;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+.status-not-started  { background: rgba(85,85,85,0.2); color: var(--text-3); border: 1px solid var(--border); }
+.status-scheduled    { background: rgba(255,214,0,0.1); color: var(--accent); border: 1px solid var(--border-y); }
+.status-in-progress  { background: rgba(76,255,143,0.1); color: var(--green); border: 1px solid rgba(76,255,143,0.25); }
+.status-completed    { background: rgba(255,255,255,0.06); color: var(--text-2); border: 1px solid var(--border); }
+
+.cc-progress-label {
+  display: flex; justify-content: space-between;
+  font-size: 10px; color: var(--text-3); margin-bottom: 5px;
+}
+.cc-progress-track {
+  height: 3px; background: rgba(255,255,255,0.06);
+  border-radius: 10px; overflow: hidden;
+}
+.cc-progress-fill {
+  height: 100%; background: var(--accent);
+  border-radius: 10px; transition: width 0.5s ease;
+}
+
+.cc-arrow {
+  position: absolute; bottom: 16px; left: 18px;
+  font-size: 14px; color: var(--accent);
+  opacity: 0; transform: translateX(6px);
+  transition: opacity 0.22s, transform 0.22s; z-index: 1;
+}
+.client-card:hover .cc-arrow { opacity: 1; transform: translateX(0); }
+
+/* Empty state */
+.empty-state {
+  text-align: center; padding: 64px 20px;
+  animation: fadeUp 0.4s ease both;
+}
+.empty-state-icon { font-size: 48px; opacity: 0.2; margin-bottom: 16px; }
+.empty-state h3 { font-size: 17px; font-weight: 700; color: var(--text-2); margin-bottom: 6px; }
+.empty-state p { font-size: 13px; color: var(--text-3); }
+
+/* ══════════════════════════════════════════
+   CLIENT DASHBOARD VIEW
+══════════════════════════════════════════ */
+.dash-header {
+  display: flex; align-items: center;
+  gap: 14px; margin-bottom: 28px;
+  flex-wrap: wrap;
+  animation: fadeUp 0.4s ease both;
+}
+
+.back-btn {
+  display: flex; align-items: center; gap: 7px;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 9px 14px;
+  font-family: 'Tajawal', sans-serif; font-size: 13px;
+  color: var(--text-2); cursor: pointer;
+  transition: all 0.2s; flex-shrink: 0;
+}
+.back-btn:hover { border-color: var(--border-y); color: var(--text); }
+
+.dash-info { flex: 1; min-width: 0; }
+.dash-client-name {
+  font-size: clamp(18px, 3vw, 24px); font-weight: 800;
+  color: var(--text); margin-bottom: 2px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.dash-client-sub { font-size: 11px; color: var(--text-3); }
+
+.dash-right {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap; flex-shrink: 0;
+}
+
+.btn-client-link {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 14px; border-radius: var(--radius-sm);
+  background: var(--glow-sm);
+  border: 1px solid var(--border-y);
+  color: var(--accent);
+  font-family: 'Tajawal', sans-serif;
+  font-size: 12px; font-weight: 700;
+  cursor: pointer; transition: all 0.2s;
+  text-decoration: none; white-space: nowrap;
+}
+.btn-client-link:hover {
+  background: var(--glow);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px var(--glow);
+}
+
+.overall-prog-box {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 9px 16px;
+  text-align: center; min-width: 100px;
+}
+.overall-prog-box .prog-num {
+  font-size: 18px; font-weight: 800; color: var(--accent); line-height: 1;
+}
+.overall-prog-box .prog-lbl { font-size: 10px; color: var(--text-3); margin-top: 2px; }
+
+/* Home sections grid */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 16px;
+}
+
+.main-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 26px 22px;
+  cursor: pointer;
+  transition: transform 0.22s, box-shadow 0.22s, border-color 0.22s;
+  position: relative; overflow: hidden;
+  animation: fadeUp 0.5s ease both;
+}
+.main-card:nth-child(1) { animation-delay: 0.04s; }
+.main-card:nth-child(2) { animation-delay: 0.08s; }
+.main-card:nth-child(3) { animation-delay: 0.12s; }
+
+.main-card::before {
+  content: ''; position: absolute; inset: 0;
+  background: var(--glow-sm); opacity: 0; transition: opacity 0.3s;
+}
+.main-card:hover::before { opacity: 1; }
+.main-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 18px 44px rgba(0,0,0,0.5), 0 0 0 1px var(--accent);
+  border-color: var(--accent);
+}
+
+.card-num {
+  font-size: 10px; font-weight: 700; letter-spacing: 2px;
+  color: var(--accent); text-transform: uppercase;
+  margin-bottom: 12px; opacity: 0.7;
+}
+.card-icon-wrap {
+  width: 48px; height: 48px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border); border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; margin-bottom: 14px;
+  transition: border-color 0.22s;
+  position: relative; z-index: 1;
+}
+.main-card:hover .card-icon-wrap { border-color: var(--accent); }
+.card-title { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 6px; position: relative; z-index: 1; }
+.card-desc { font-size: 12px; color: var(--text-2); line-height: 1.6; position: relative; z-index: 1; }
+.card-arrow {
+  position: absolute; bottom: 18px; left: 20px;
+  font-size: 15px; color: var(--accent);
+  opacity: 0; transform: translateX(6px);
+  transition: opacity 0.22s, transform 0.22s;
+}
+.main-card:hover .card-arrow { opacity: 1; transform: translateX(0); }
+
+/* ══════════════════════════════════════════
+   SECTION VIEWS
+══════════════════════════════════════════ */
+.section-view { display: none; animation: fadeUp 0.4s ease both; }
+.section-view.active { display: block; }
+
+.section-header {
+  display: flex; align-items: center;
+  gap: 14px; margin-bottom: 26px; flex-wrap: wrap;
+}
+.section-header-text { flex: 1; }
+.section-badge {
+  display: inline-block; font-size: 10px; font-weight: 700;
+  letter-spacing: 1.5px; padding: 3px 10px;
+  border-radius: 20px; margin-bottom: 4px; text-transform: uppercase;
+}
+.badge-1 { background: rgba(255,214,0,0.1); color: var(--accent); }
+.badge-2 { background: rgba(76,255,143,0.08); color: var(--green); }
+.badge-3 { background: rgba(255,100,100,0.08); color: #FF8080; }
+
+.section-title {
+  font-size: clamp(17px, 2.8vw, 24px); font-weight: 800; color: var(--text);
+}
+
+/* ══════════════════════════════════════════
+   BLOCKS
+══════════════════════════════════════════ */
+.blocks-list { display: flex; flex-direction: column; gap: 12px; }
+
+.block {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-right: 3px solid var(--accent);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+.block.block-green { border-right-color: var(--green); }
+.block.block-red   { border-right-color: #FF8080; }
+.block.block-gray  { border-right-color: var(--text-3); }
+
+.block-header {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  padding: 15px 18px;
+  cursor: pointer; user-select: none; gap: 12px;
+  transition: background 0.2s;
+}
+.block-header:hover { background: rgba(255,255,255,0.02); }
+.block-header-left { display: flex; align-items: center; gap: 10px; }
+.block-icon { font-size: 18px; flex-shrink: 0; }
+.block-title { font-size: 14px; font-weight: 700; color: var(--text); }
+.block-progress { font-size: 11px; color: var(--text-3); margin-top: 1px; }
+.block-toggle {
+  width: 24px; height: 24px;
+  background: rgba(255,255,255,0.04); border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; color: var(--text-3);
+  transition: transform 0.3s, background 0.2s; flex-shrink: 0;
+}
+.block.open .block-toggle { transform: rotate(180deg); background: rgba(255,255,255,0.08); }
+.block-body {
+  display: none; padding: 0 18px 18px;
+  border-top: 1px solid var(--border);
+}
+.block.open .block-body { display: block; }
+
+/* Checklist */
+.checklist { list-style: none; padding: 0; margin: 12px 0 0; }
+.checklist li {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.checklist li:last-child { border-bottom: none; }
+.check-wrap { flex-shrink: 0; margin-top: 2px; }
+.check-wrap input[type="checkbox"] {
+  appearance: none; -webkit-appearance: none;
+  width: 18px; height: 18px;
+  border: 2px solid var(--text-3); border-radius: 5px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s; position: relative; background: transparent;
+}
+.check-wrap input[type="checkbox"]:checked {
+  background: var(--accent); border-color: var(--accent);
+  box-shadow: 0 0 10px var(--glow);
+}
+.check-wrap input[type="checkbox"]:checked::after {
+  content: '✓'; color: #0B0B0B; font-size: 10px; font-weight: 900;
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+}
+.check-label {
+  font-size: 13px; color: var(--text-2);
+  line-height: 1.6; cursor: pointer; transition: color 0.2s; flex: 1;
+}
+.checklist li:has(input:checked) .check-label {
+  color: var(--text-3); text-decoration: line-through;
+}
+
+/* Note areas */
+.note-label {
+  display: block; font-size: 10px; font-weight: 700;
+  color: var(--text-3); letter-spacing: 1.2px; text-transform: uppercase;
+  margin: 12px 0 4px;
+}
+.note-area {
+  width: 100%; background: #0f0f0f;
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  color: var(--text); font-family: 'Tajawal', sans-serif;
+  font-size: 14px; padding: 12px 14px;
+  resize: vertical; min-height: 90px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  line-height: 1.7; direction: rtl;
+}
+.note-area::placeholder { color: var(--text-3); }
+.note-area:focus {
+  outline: none; border-color: var(--border-y);
+  box-shadow: 0 0 0 3px var(--glow-sm);
+}
+
+.highlight-note {
+  background: rgba(255,214,0,0.05);
+  border: 1px solid rgba(255,214,0,0.18);
+  border-radius: var(--radius-sm);
+  padding: 10px 13px; margin-top: 10px;
+  font-size: 12px; color: rgba(255,214,0,0.85); line-height: 1.7;
+}
+
+.sub-label {
+  font-size: 10px; font-weight: 700; letter-spacing: 1.2px;
+  text-transform: uppercase; color: var(--text-3);
+  margin: 16px 0 6px;
+  display: flex; align-items: center; gap: 8px;
+}
+.sub-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+.metrics-row {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 8px; margin-top: 12px;
+}
+.metric-box {
+  background: #0f0f0f; border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 10px; text-align: center;
+}
+.metric-box label { display: block; font-size: 9px; color: var(--text-3); margin-bottom: 6px; }
+.metric-box input[type="text"] {
+  width: 100%; background: var(--card); border: 1px solid var(--border);
+  border-radius: 6px; color: var(--text);
+  font-family: 'Tajawal', sans-serif; font-size: 14px; font-weight: 700;
+  text-align: center; padding: 6px;
+  transition: border-color 0.2s;
+}
+.metric-box input:focus { outline: none; border-color: var(--border-y); }
+
+.step-item {
+  display: flex; gap: 12px; padding: 12px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  align-items: flex-start;
+}
+.step-item:last-child { border-bottom: none; }
+.step-num {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 800; color: #0B0B0B;
+  flex-shrink: 0; margin-top: 1px;
+}
+.step-content { flex: 1; }
+.step-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+.step-desc { font-size: 12px; color: var(--text-2); line-height: 1.6; }
+
+/* ══════════════════════════════════════════
+   SESSION SCHEDULER (SECTION 01)
+══════════════════════════════════════════ */
+.scheduler-block {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 10px; align-items: end;
+  margin-top: 12px;
+}
+@media (max-width: 560px) {
+  .scheduler-block { grid-template-columns: 1fr 1fr; }
+  .scheduler-block .btn-save-sched { grid-column: 1 / -1; }
+}
+
+.sched-field { display: flex; flex-direction: column; gap: 5px; }
+.sched-field label { font-size: 10px; font-weight: 700; color: var(--text-3); letter-spacing: 1px; text-transform: uppercase; }
+.sched-field input[type="date"],
+.sched-field input[type="time"] {
+  background: #0f0f0f; border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text); font-family: 'Tajawal', sans-serif;
+  font-size: 13px; padding: 10px 12px;
+  transition: border-color 0.2s;
+  color-scheme: dark;
+}
+.sched-field input:focus { outline: none; border-color: var(--border-y); }
+
+.btn-save-sched {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--accent); border: none;
+  border-radius: var(--radius-sm); color: #0B0B0B;
+  font-family: 'Tajawal', sans-serif; font-size: 13px; font-weight: 800;
+  padding: 10px 18px; cursor: pointer; transition: all 0.2s; white-space: nowrap;
+}
+.btn-save-sched:hover { box-shadow: 0 4px 16px var(--glow); transform: translateY(-1px); }
+
+.sched-saved {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12px; color: var(--accent);
+  background: var(--glow-sm); border: 1px solid var(--border-y);
+  border-radius: var(--radius-sm); padding: 8px 12px;
+  margin-top: 10px;
+}
+
+/* ══════════════════════════════════════════
+   COPY REPORT BLOCK
+══════════════════════════════════════════ */
+.report-block {
+  background: rgba(255,214,0,0.04);
+  border: 1px solid rgba(255,214,0,0.15);
+  border-radius: var(--radius);
+  padding: 22px; margin-top: 14px;
+  animation: fadeUp 0.4s ease both;
+}
+.report-block h3 {
+  font-size: 14px; font-weight: 700; color: var(--text);
+  margin-bottom: 5px; display: flex; align-items: center; gap: 8px;
+}
+.report-block p { font-size: 12px; color: var(--text-2); margin-bottom: 14px; }
+.copy-btns-row { display: flex; gap: 10px; flex-wrap: wrap; }
+
+.btn-copy {
+  display: flex; align-items: center; gap: 7px;
+  padding: 10px 16px; border-radius: var(--radius-sm);
+  font-family: 'Tajawal', sans-serif; font-size: 13px; font-weight: 700;
+  cursor: pointer; transition: all 0.2s; border: none;
+}
+.btn-copy-full {
+  background: var(--accent); color: #0B0B0B;
+}
+.btn-copy-full:hover { box-shadow: 0 4px 16px var(--glow); transform: translateY(-1px); }
+
+.btn-copy-wa {
+  background: rgba(76,255,143,0.1);
+  border: 1px solid rgba(76,255,143,0.25);
+  color: var(--green);
+}
+.btn-copy-wa:hover { background: rgba(76,255,143,0.2); transform: translateY(-1px); }
+
+/* ══════════════════════════════════════════
+   COACH MAP — FULLSCREEN POPUP
+══════════════════════════════════════════ */
+.coach-map-btn {
+  position: fixed; bottom: 28px; left: 28px; z-index: 200;
+  display: none;
+  align-items: center; gap: 8px;
+  background: var(--accent); color: #0B0B0B;
+  border: none; border-radius: 30px;
+  font-family: 'Tajawal', sans-serif;
+  font-size: 14px; font-weight: 800;
+  padding: 13px 22px; cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 24px var(--glow);
+  animation: fadeUp 0.4s ease both;
+}
+.coach-map-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 32px var(--glow);
+}
+.coach-map-btn.visible { display: flex; }
+
+.coach-map-overlay {
+  display: none;
+  position: fixed; inset: 0; z-index: 500;
+  background: rgba(0,0,0,0.92);
+  backdrop-filter: blur(6px);
+  animation: fadeIn 0.25s ease;
+  overflow-y: auto;
+}
+.coach-map-overlay.open { display: flex; flex-direction: column; }
+
+.coach-map-inner {
+  max-width: 900px; width: 100%;
+  margin: 0 auto; padding: 40px 24px 80px;
+}
+
+.coach-map-header {
+  display: flex; align-items: center;
+  justify-content: space-between; gap: 16px;
+  margin-bottom: 36px;
+}
+.coach-map-header h2 {
+  font-size: clamp(20px, 3vw, 28px); font-weight: 800; color: var(--text);
+}
+.btn-close-map {
+  width: 40px; height: 40px; border-radius: 10px;
+  background: var(--card); border: 1px solid var(--border);
+  color: var(--text-2); font-size: 18px; cursor: pointer;
+  transition: all 0.2s; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.btn-close-map:hover { border-color: var(--red); color: var(--red); }
+
+/* Flowchart */
+.flow-chart {
+  display: flex; flex-direction: column; gap: 0;
+}
+.flow-step {
+  display: flex; gap: 20px; position: relative;
+}
+.flow-step-left {
+  display: flex; flex-direction: column; align-items: center;
+  flex-shrink: 0;
+}
+.flow-step-num {
+  width: 42px; height: 42px; border-radius: 50%;
+  background: var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; font-weight: 900; color: #0B0B0B; flex-shrink: 0;
+  box-shadow: 0 0 20px var(--glow);
+  transition: transform 0.2s;
+}
+.flow-step:hover .flow-step-num { transform: scale(1.1); }
+
+.flow-connector {
+  width: 2px; flex: 1; min-height: 24px;
+  background: linear-gradient(var(--accent), rgba(255,214,0,0.2));
+  margin: 4px 0;
+}
+
+.flow-step-content {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px; margin-bottom: 0;
+  flex: 1; transition: border-color 0.2s, box-shadow 0.2s;
+  margin-bottom: 4px;
+}
+.flow-step:hover .flow-step-content {
+  border-color: var(--border-y);
+  box-shadow: 0 0 20px var(--glow-sm);
+}
+
+.flow-step-title {
+  font-size: 15px; font-weight: 700; color: var(--text);
+  margin-bottom: 5px;
+  display: flex; align-items: center; gap: 8px;
+}
+.flow-step-icon { font-size: 18px; }
+.flow-step-instruction {
+  font-size: 13px; color: var(--text-2); line-height: 1.65; margin-bottom: 0;
+}
+.flow-step-note {
+  font-size: 11px; color: var(--accent);
+  background: var(--glow-sm); border: 1px solid rgba(255,214,0,0.12);
+  border-radius: 7px; padding: 7px 10px; margin-top: 8px;
+  line-height: 1.6;
+}
+
+/* ══════════════════════════════════════════
+   MODALS
+══════════════════════════════════════════ */
+.modal-backdrop {
+  display: none; position: fixed; inset: 0; z-index: 600;
+  background: rgba(0,0,0,0.85); backdrop-filter: blur(4px);
+  align-items: center; justify-content: center; padding: 20px;
+}
+.modal-backdrop.open { display: flex; animation: fadeIn 0.2s ease; }
+
+.modal-box {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-top: 2px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 28px; max-width: 420px; width: 100%;
+  animation: fadeUp 0.25s ease;
+}
+.modal-box h3 { font-size: 16px; font-weight: 800; margin-bottom: 6px; }
+.modal-box p { font-size: 13px; color: var(--text-2); margin-bottom: 20px; }
+.modal-btns { display: flex; gap: 10px; justify-content: flex-end; }
+
+.btn-modal {
+  padding: 9px 16px; border-radius: var(--radius-sm);
+  font-family: 'Tajawal', sans-serif; font-size: 13px; font-weight: 700;
+  cursor: pointer; transition: all 0.2s; border: none;
+}
+.btn-modal-cancel {
+  background: #1a1a1a; border: 1px solid var(--border); color: var(--text-2);
+}
+.btn-modal-cancel:hover { color: var(--text); border-color: var(--border-y); }
+.btn-modal-confirm { background: var(--red); color: #fff; }
+.btn-modal-confirm:hover { box-shadow: 0 4px 16px rgba(255,76,76,0.3); transform: translateY(-1px); }
+
+/* Add client modal fields */
+.modal-field { margin-bottom: 12px; }
+.modal-field label { display: block; font-size: 11px; font-weight: 700; color: var(--text-3); margin-bottom: 5px; letter-spacing: 1px; text-transform: uppercase; }
+.modal-field input {
+  width: 100%;
+  background: #0f0f0f; border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text); font-family: 'Tajawal', sans-serif;
+  font-size: 14px; padding: 10px 13px; direction: rtl;
+  transition: border-color 0.2s;
+}
+.modal-field input:focus { outline: none; border-color: var(--border-y); }
+
+/* ══════════════════════════════════════════
+   TOAST
+══════════════════════════════════════════ */
+#toast {
+  position: fixed; bottom: 24px; right: 24px; z-index: 999;
+  background: var(--accent); color: #0B0B0B;
+  font-family: 'Tajawal', sans-serif;
+  font-size: 13px; font-weight: 800;
+  padding: 11px 20px; border-radius: 30px;
+  box-shadow: 0 4px 20px var(--glow);
+  opacity: 0; transform: translateY(10px);
+  transition: all 0.25s ease; pointer-events: none;
+}
+#toast.show { opacity: 1; transform: translateY(0); }
+
+/* ══════════════════════════════════════════
+   FOCUS MODE
+══════════════════════════════════════════ */
+body.focus-mode .header-right > *:not(.focus-toggle):not(#header-client-badge) {
+  opacity: 0.3; pointer-events: none;
+}
+body.focus-mode .dash-header { margin-bottom: 16px; }
+body.focus-mode .cards-grid .main-card:not(.active-card) {
+  opacity: 0.3; pointer-events: none;
+}
+
+/* ══════════════════════════════════════════
+   FOOTER
+══════════════════════════════════════════ */
+.page-footer {
+  position: relative; z-index: 5;
+  text-align: center; padding: 18px 24px;
+  font-size: 11px; color: var(--text-3);
+  border-top: 1px solid var(--border);
+  background: rgba(11,11,11,0.5);
+}
+
+/* ══════════════════════════════════════════
+   RESPONSIVE
+══════════════════════════════════════════ */
+@media (max-width: 640px) {
+  .header { padding: 14px 18px; }
+  .main { padding: 24px 16px 60px; }
+  .add-client-bar { flex-direction: column; }
+  .dash-right { width: 100%; justify-content: flex-start; }
+  .coach-map-btn { bottom: 20px; left: 20px; font-size: 13px; padding: 11px 18px; }
+  .coach-map-inner { padding: 28px 16px 60px; }
+  .flow-step-num { width: 36px; height: 36px; font-size: 14px; }
+}
+
+/* ══════════════════════════════════════════
+   GLOBAL NOTIFICATION BAR
+══════════════════════════════════════════ */
+.global-notif-bar {
+  position: sticky; top: 0; z-index: 110;
+  background: rgba(11,11,11,0.97);
+  border-bottom: 1px solid rgba(255,214,0,0.3);
+  padding: 0 24px;
+  display: flex; flex-direction: column; gap: 0;
+  backdrop-filter: blur(12px);
+}
+.notif-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255,214,0,0.08);
+  animation: fadeUp 0.3s ease both;
+}
+.notif-item:last-child { border-bottom: none; }
+.notif-icon { font-size: 16px; flex-shrink: 0; }
+.notif-text {
+  flex: 1;
+  font-size: 13px; font-weight: 700;
+  color: var(--accent);
+  direction: rtl;
+}
+.notif-dismiss {
+  background: rgba(255,214,0,0.1);
+  border: 1px solid rgba(255,214,0,0.2);
+  border-radius: 6px; color: var(--accent);
+  font-size: 11px; font-weight: 700;
+  padding: 4px 10px; cursor: pointer;
+  transition: all 0.2s; flex-shrink: 0;
+  font-family: 'Tajawal', sans-serif;
+}
+.notif-dismiss:hover { background: rgba(255,214,0,0.25); }
+
+/* ══════════════════════════════════════════
+   NEXT CALL SCHEDULER (IN SECTION 02)
+══════════════════════════════════════════ */
+.next-call-scheduler {
+  margin-top: 18px;
+  background: rgba(255,214,0,0.04);
+  border: 1px solid rgba(255,214,0,0.18);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+}
+.next-call-title {
+  font-size: 13px; font-weight: 800;
+  color: var(--accent); margin-bottom: 12px;
+  display: flex; align-items: center; gap: 7px;
+}
+
+</style>
+</head>
+<body>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- ══════════════════════════════════════════
+     GLOBAL NOTIFICATION BAR
+══════════════════════════════════════════ -->
+<div id="global-notif-bar" class="global-notif-bar" style="display:none;"></div>
+
+<!-- ══════════════════════════════════════════
+     HEADER
+══════════════════════════════════════════ -->
+<header class="header">
+  <div class="header-brand" onclick="goHome()" role="button" tabindex="0"
+       onkeydown="if(event.key==='Enter'||event.key===' ')goHome()">
+    <div class="header-logo">🧠</div>
+    <div class="header-title">Mario Aziz Framework</div>
+  </div>
+  <div class="header-right">
+    <button class="focus-toggle" id="focus-toggle-btn" onclick="toggleFocusMode()">
+      ⚡ Focus Mode
+    </button>
+    <div class="status-dot">النظام نشط</div>
+    <div id="header-client-badge"></div>
+  </div>
+</header>
+
+<!-- ══════════════════════════════════════════
+     MAIN
+══════════════════════════════════════════ -->
+<main class="main">
+
+  <!-- ════════════════════════════
+       VIEW: CLIENTS LIST
+  ════════════════════════════ -->
+  <div id="view-clients">
+
+    <div class="page-title">
+      <h2>مرحباً بك 👋</h2>
+      <p>اختر عميلاً للبدء</p>
+    </div>
+
+    <div class="add-client-bar">
+      <input type="text" id="new-client-name" placeholder="اسم العميل الجديد..."
+             onkeydown="handleClientKey(event)">
+      <input type="url" id="new-client-link" placeholder="رابط العميل (اختياري)"
+             onkeydown="handleClientKey(event)">
+      <button class="btn-yellow" onclick="addClient()">＋ إضافة عميل</button>
+    </div>
+
+    <div class="divider">العملاء</div>
+
+    <div class="clients-grid" id="clients-grid">
+      <!-- Rendered by JS -->
+    </div>
+
+  </div><!-- /#view-clients -->
+
+  <!-- ════════════════════════════
+       VIEW: CLIENT DASHBOARD
+  ════════════════════════════ -->
+  <div id="view-dashboard">
+
+    <div class="dash-header">
+      <button class="back-btn" onclick="goHome()">↑ قائمة العملاء</button>
+      <div class="dash-info">
+        <div class="dash-client-name" id="dash-client-name">—</div>
+        <div class="dash-client-sub" id="dash-client-sub">—</div>
+      </div>
+      <div class="dash-right">
+        <a id="btn-client-link" class="btn-client-link" href="#" target="_blank" rel="noopener noreferrer" style="display:none;">
+          🔗 فتح رابط العميل
+        </a>
+        <div class="overall-prog-box">
+          <div class="prog-num" id="overall-prog-pct">0%</div>
+          <div class="prog-lbl">تقدم الجلسات</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Home cards -->
+    <div id="home-view" style="display:grid;">
+      <div class="cards-grid">
+        <div class="main-card" onclick="showSection('section1')">
+          <div class="card-num">القسم 01</div>
+          <div class="card-icon-wrap">🎯</div>
+          <div class="card-title">جلسة تحديد الأهداف</div>
+          <div class="card-desc">جدولة الجلسة، مكالمة الأهداف، والتقييم الأولي.</div>
+          <div class="card-arrow">←</div>
+        </div>
+        <div class="main-card" onclick="showSection('section2')">
+          <div class="card-num">القسم 02</div>
+          <div class="card-icon-wrap">📆</div>
+          <div class="card-title">مكالمه المتابعة</div>
+          <div class="card-desc">دليل المكالمات لمتابعة التغذية، التدريب، والعقلية.</div>
+          <div class="card-arrow">←</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════
+         SECTION 01
+    ═══════════════════ -->
+    <div id="section1" class="section-view">
+      <div class="section-header">
+        <button class="back-btn" onclick="showHome()">↑ الرئيسية</button>
+        <div class="section-header-text">
+          <div class="section-badge badge-1">القسم 01</div>
+          <div class="section-title">🎯 جلسة تحديد الأهداف والتقييم</div>
+        </div>
+      </div>
+
+      <div class="blocks-list">
+
+        <!-- Session Scheduler -->
+        <div class="block">
+          <div class="block-header" onclick="toggleBlock(this)">
+            <div class="block-header-left">
+              <div class="block-icon">📅</div>
+              <div>
+                <div class="block-title">تحديد موعد الجلسة</div>
+                <div class="block-progress" id="sched-display">لم يتم التحديد بعد</div>
+              </div>
+            </div>
+            <div class="block-toggle">▼</div>
+          </div>
+          <div class="block-body">
+            <div class="scheduler-block">
+              <div class="sched-field">
+                <label>التاريخ</label>
+                <input type="date" id="sched-date" onchange="saveSched()">
+              </div>
+              <div class="sched-field">
+                <label>الوقت</label>
+                <input type="time" id="sched-time" onchange="saveSched()">
+              </div>
+              <button class="btn-save-sched" onclick="saveSchedExplicit()">✓ حفظ</button>
+            </div>
+            <div id="sched-saved-msg" class="sched-saved" style="display:none;">
+              📅 <span id="sched-saved-text"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- During Call -->
+        <div class="block">
+          <div class="block-header" onclick="toggleBlock(this)">
+            <div class="block-header-left">
+              <div class="block-icon">🎙️</div>
+              <div>
+                <div class="block-title">أثناء المكالمة</div>
+                <div class="block-progress" id="prog-b2">0 / 4 مكتملة</div>
+              </div>
+            </div>
+            <div class="block-toggle">▼</div>
+          </div>
+          <div class="block-body">
+            <ul class="checklist" onchange="onCheckChange('prog-b2', this)">
+              <li><div class="check-wrap"><input type="checkbox" id="b2c1" data-key="b2c1"></div><label class="check-label" for="b2c1">توضيح الهدف الرئيسي للعميل بشكل دقيق ومحدد</label></li>
+              <li><div class="check-wrap"><input type="checkbox" id="b2c2" data-key="b2c2"></div><label class="check-label" for="b2c2">مناقشة الإخفاقات السابقة وأسبابها</label></li>
+              <li><div class="check-wrap"><input type="checkbox" id="b2c3" data-key="b2c3"></div><label class="check-label" for="b2c3">الكشف عن الدوافع الحقيقية وراء الهدف</label></li>
+              <li><div class="check-wrap"><input type="checkbox" id="b2c4" data-key="b2c4"></div><label class="check-label" for="b2c4">تحويل العقلية: من "هذا جسمي" إلى "أنا مسؤول عن هذا الجسم"</label></li>
+            </ul>
+            <div class="highlight-note">
+              💡 <strong>تحويل العقلية:</strong> ساعد العميل على الانتقال من دور الضحية إلى دور القائد.
+            </div>
+            <span class="note-label">📝 ملاحظات أثناء المكالمة</span>
+            <textarea class="note-area" data-key="note-b2" placeholder="سجّل أهم ما قاله العميل، الدوافع العميقة، العوائق..." oninput="saveNote(this)"></textarea>
+          </div>
+        </div>
+
+        <!-- Baseline metrics -->
+        <div class="block block-gray">
+          <div class="block-header" onclick="toggleBlock(this)">
+            <div class="block-header-left">
+              <div class="block-icon">📏</div>
+              <div>
+                <div class="block-title">القياسات الأساسية — Baseline</div>
+                <div class="block-progress" id="prog-b3">0 / 4 مكتملة</div>
+              </div>
+            </div>
+            <div class="block-toggle">▼</div>
+          </div>
+          <div class="block-body">
+            <ul class="checklist" onchange="onCheckChange('prog-b3', this)">
+              <li><div class="check-wrap"><input type="checkbox" id="b3c1" data-key="b3c1"></div><label class="check-label" for="b3c1">تسجيل القياسات الجسمية الأولية</label></li>
+              <li><div class="check-wrap"><input type="checkbox" id="b3c2" data-key="b3c2"></div><label class="check-label" for="b3c2">تقييم مستوى اللياقة البدنية الحالي</label></li>
+              <li><div class="check-wrap"><input type="checkbox" id="b3c3" data-key="b3c3"></div><label class="check-label" for="b3c3">تحديد مستوى التغذية والعادات الغذائية الحالية</label></li>
+              <li><div class="check-wrap"><input type="checkbox" id="b3c4" data-key="b3c4"></div><label class="check-label" for="b3c4">رصد نمط النوم ومستوى الإجهاد اليومي</label></li>
+            </ul>
+            <div class="metrics-row">
+              <div class="metric-box"><label>الوزن (كجم)</label><input type="text" data-key="m-weight" placeholder="––" oninput="saveMetric(this)"></div>
+              <div class="metric-box"><label>الطول (سم)</label><input type="text" data-key="m-height" placeholder="––" oninput="saveMetric(this)"></div>
+              <div class="metric-box"><label>الخصر (سم)</label><input type="text" data-key="m-waist" placeholder="––" oninput="saveMetric(this)"></div>
+              <div class="metric-box"><label>اللياقة (1-10)</label><input type="text" data-key="m-fitness" placeholder="––" oninput="saveMetric(this)"></div>
+            </div>
+            <span class="note-label">📝 ملاحظات التقييم الأولي</span>
+            <textarea class="note-area" data-key="note-b3" placeholder="ملاحظات إضافية عن الحالة الأولية..." oninput="saveNote(this)"></textarea>
+          </div>
+        </div>
+
+        <div class="report-block">
+          <h3>📤 إرسال تقرير الجلسة</h3>
+          <p>انسخ ملخص هذه الجلسة وأرسله للعميل.</p>
+          <div class="copy-btns-row">
+            <button class="btn-copy btn-copy-full" onclick="copyFullReport()">📋 نسخ التقرير الكامل</button>
+            <button class="btn-copy btn-copy-wa" onclick="copyWhatsApp()">💬 نسخ رسالة واتساب</button>
+          </div>
+        </div>
+
+      </div>
+    </div><!-- /#section1 -->
+
+    <!-- ═══════════════════
+         SECTION 02
+    ═══════════════════ -->
+    <div id="section2" class="section-view">
+      <div class="section-header">
+        <button class="back-btn" onclick="showHome()">↑ الرئيسية</button>
+        <div class="section-header-text">
+          <div class="section-badge badge-2">القسم 02</div>
+          <div class="section-title">📞 مكالمه المتابعة</div>
+        </div>
+      </div>
+
+      <div class="blocks-list">
+
+        <div class="block block-green">
+          <div class="block-header" onclick="toggleBlock(this)">
+            <div class="block-header-left"><div class="block-icon">🌡️</div>
+              <div><div class="block-title">الحالة العامة</div><div class="block-progress" id="prog-c1">0 / 3 مكتملة</div></div>
+            </div><div class="block-toggle">▼</div>
+          </div>
+          <div class="block-body">
+            <ul class="checklist" onchange="onCheckChange('prog-c1', this)">
+              <li><div class="check-wrap"><input type="checkbox" id="c1a" data-key="c1a"></div><label class="check-label" for="c1a">مستوى الطاقة والنشاط العام</label></li>
+              <li><div class="check-wrap"><input type="checkbox" id="c1b" data-key="c1b"></div><label class="check-label" for="c1b">جودة النوم وعدد الساعات</label></li>
+              <li><div class="check-wrap"><input type="checkbox" id="c1c" data-key="c1c"></div><label class="check-label" for="c1c">مستوى الإجهاد والضغط اليومي</label></li>
+            </ul>
+            <span class="note-label">📝 ملاحظات الحالة العامة</span>
+            <textarea class="note-area" data-key="note-c1" placeholder="كيف يشعر العميل عموماً؟ أي تحديات جديدة؟..." oninput="saveNote(this)"></textarea>
+          </div>
+        </div>
+
+        <div class="block block-green">
+          <div class="block-header" onclick="toggleBlock(this)">
+            <div class="block-header-left"><div class="block-icon">🥗</div>
+              <div><div class="block-title">التغذية</div><div class="block-progress" id="prog-c2">0 / 3 مكتملة</div></div>
+            </div><div class="block-toggle">▼</div>
+          </div>
+          <div class="block-body">
+            <ul class="checklist" onchange="onCheckChange('prog-c2', this)">
+              <li><div class="check-wrap"><input type="checkbox" id="c2a" data-key="c2a"></div><label class="check-label" for="c2a">الالتزام بالخطة الغذائية المحددة</label></li>
+              <li><div class="check-wrap"><input type="checkbox" id="c2b" data-key="c2b"></div><label class="check-label" for="c2b">مقدار شرب الماء اليومي</label></li>
+              <li><div class="check-wrap"><input type="checkbox" id="c2c" data-key="c2c"></div><label class="check-label" for="c2c">تناول الفيتامينات والمكملات الموصوفة</label></li>
+            </ul>
+            <span class="note-label">📝 ملاحظات التغذية</span>
+            <textarea class="note-area" data-key="note-c2" placeholder="التحديات، الانتكاسات، الانجازات في النظام الغذائي..." oninput="saveNote(this)"></textarea>
+          </div>
+        </div>
+
+        <div class="block block-green">
+          <div class="block-header" onclick="toggleBlock(this)">
+            <div class="block-header-left"><div class="block-icon">🏋️</div>
+              <div><div class="block-title">التدريب</div><div class="block-progress" id="prog-c3">0 / 2 مكتملة</div></div>
+            </div><div class="block-toggle">▼</div>
+          </div>
+          <div class="block-body">
+            <ul class="checklist" onchange="onCheckChange('prog-c3', this)">
+              <li><div class="check-wrap"><input type="checkbox" id="c3a" data-key="c3a"></div><label class="check-label" for="c3a">مراجعة أداء التمارين والتحقق من التنفيذ الصحيح</label></li>
+              <li><div class="check-wrap"><input type="checkbox" id="c3b" data-key="c3b"></div><label class="check-label" for="c3b">تتبع مؤشرات القوة والتقدم في الأوزان</label></li>
+            </ul>
+            <span class="note-label">📝 ملاحظات التدريب</span>
+            <textarea class="note-area" data-key="note-c3" placeholder="الجلسات المنجزة، الصعوبات، التطور الملحوظ..." oninput="saveNote(this)"></textarea>
+          </div>
+        </div>
+
+        <div class="block block-green">
+          <div class="block-header" onclick="toggleBlock(this)">
+            <div class="block-header-left"><div class="block-icon">🧘</div>
+              <div><div class="block-title">العقلية والحالة الذهنية</div><div class="block-progress" id="prog-c4">0 / 2 مكتملة</div></div>
+            </div><div class="block-toggle">▼</div>
+          </div>
+          <div class="block-body">
+            <ul class="checklist" onchange="onCheckChange('prog-c4', this)">
+              <li><div class="check-wrap"><input type="checkbox" id="c4a" data-key="c4a"></div><label class="check-label" for="c4a">قياس مستوى الدافعية الحالية</label></li>
+              <li><div class="check-wrap"><input type="checkbox" id="c4b" data-key="c4b"></div><label class="check-label" for="c4b">رصد الأفكار المتكررة والأنماط الذهنية السلبية</label></li>
+            </ul>
+            <span class="note-label">📝 ملاحظات العقلية</span>
+            <textarea class="note-area" data-key="note-c4" placeholder="ما الذي يشغل ذهن العميل؟ ما الأنماط المتكررة؟..." oninput="saveNote(this)"></textarea>
+          </div>
+        </div>
+
+        <div class="block block-green">
+          <div class="block-header" onclick="toggleBlock(this)">
+            <div class="block-header-left"><div class="block-icon">🔓</div>
+              <div><div class="block-title">الانفصال المعرفي (Cognitive Diffusion)</div><div class="block-progress" id="prog-c5">0 / 2 مكتملة</div></div>
+            </div><div class="block-toggle">▼</div>
+          </div>
+          <div class="block-body">
+            <ul class="checklist" onchange="onCheckChange('prog-c5', this)">
+              <li><div class="check-wrap"><input type="checkbox" id="c5a" data-key="c5a"></div><label class="check-label" for="c5a">تحديد الفكرة المعيقة: "ما الفكرة التي تمنعك من التقدم الآن؟"</label></li>
+              <li><div class="check-wrap"><input type="checkbox" id="c5b" data-key="c5b"></div><label class="check-label" for="c5b">مساعدة العميل على مراقبة الفكرة دون الاندماج معها</label></li>
+            </ul>
+            <div class="highlight-note">
+              💡 <strong>تقنية الانفصال:</strong> "أنا أرى فكرة تقول..." بدلاً من "أنا أعتقد أن..." — خلق مسافة بين الـ"أنا" والأفكار المقيِّدة.
+            </div>
+            <span class="note-label">📝 ملاحظات الانفصال المعرفي</span>
+            <textarea class="note-area" data-key="note-c5" placeholder="سجّل الأفكار المعيقة التي شاركها العميل وكيف تعامل معها..." oninput="saveNote(this)"></textarea>
+          </div>
+        </div>
+
+        <div class="block block-green">
+          <div class="block-header" onclick="toggleBlock(this)">
+            <div class="block-header-left"><div class="block-icon">📓</div>
+              <div><div class="block-title">ملاحظات الجلسة والخطوات التالية</div></div>
+            </div><div class="block-toggle">▼</div>
+          </div>
+          <div class="block-body">
+            <span class="note-label">📝 ملخص الجلسة</span>
+            <textarea class="note-area" data-key="session-notes" placeholder="سجّل ملخص ما جرى في هذه الجلسة..." oninput="saveNote(this)"></textarea>
+            <span class="note-label">✅ الخطوات المتفق عليها</span>
+            <textarea class="note-area" data-key="next-steps" placeholder="اكتب هنا الخطوات العملية التالية..." oninput="saveNote(this)"></textarea>
+
+            <!-- ═══ NEXT CALL SCHEDULER ═══ -->
+            <div class="next-call-scheduler">
+              <div class="next-call-title">📞 تحديد ميعاد المكالمة التالية</div>
+              <div class="scheduler-block">
+                <div class="sched-field">
+                  <label>التاريخ</label>
+                  <input type="date" id="next-call-date">
+                </div>
+                <div class="sched-field">
+                  <label>الوقت</label>
+                  <input type="time" id="next-call-time">
+                </div>
+                <button class="btn-save-sched" onclick="saveNextCall()">📞 حفظ الميعاد</button>
+              </div>
+              <div id="next-call-saved-msg" class="sched-saved" style="display:none;">
+                📞 <span id="next-call-saved-text"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="report-block">
+          <h3>📤 إرسال تقرير الجلسة</h3>
+          <p>انسخ ملخص جلسة المتابعة وأرسله للعميل.</p>
+          <div class="copy-btns-row">
+            <button class="btn-copy btn-copy-full" onclick="copyFullReport()">📋 نسخ التقرير الكامل</button>
+            <button class="btn-copy btn-copy-wa" onclick="copyWhatsApp()">💬 نسخ رسالة واتساب</button>
+          </div>
+        </div>
+
+      </div>
+    </div><!-- /#section2 -->
+
+  </div><!-- /#view-dashboard -->
+
+</main>
+
+<!-- ══════════════════════════════════════════
+     COACH MAP BUTTON (visible in dashboard)
+══════════════════════════════════════════ -->
+<button class="coach-map-btn" id="coach-map-btn" onclick="openCoachMap()">
+  🧠 Coach Map
+</button>
+
+<!-- ══════════════════════════════════════════
+     COACH MAP FULLSCREEN POPUP
+══════════════════════════════════════════ -->
+<div class="coach-map-overlay" id="coach-map-overlay">
+  <div class="coach-map-inner">
+    <div class="coach-map-header">
+      <h2>🧠 Smart Coach Map</h2>
+      <button class="btn-close-map" onclick="closeCoachMap()">✕</button>
+    </div>
+
+    <div class="flow-chart">
+
+      <!-- Step 1 -->
+      <div class="flow-step">
+        <div class="flow-step-left">
+          <div class="flow-step-num">1</div>
+          <div class="flow-connector"></div>
+        </div>
+        <div class="flow-step-content">
+          <div class="flow-step-title"><span class="flow-step-icon">👋</span>الافتتاح والتواصل</div>
+          <div class="flow-step-instruction">ابدأ بتسجيل الحضور العاطفي. اسأل: "كيف أنت اليوم؟" واستمع فعلياً قبل أي أجندة. بنِ الثقة أولاً.</div>
+          <div class="flow-step-note">⚡ 70% استماع — 20% أسئلة — 10% توجيه</div>
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="flow-step">
+        <div class="flow-step-left">
+          <div class="flow-step-num">2</div>
+          <div class="flow-connector"></div>
+        </div>
+        <div class="flow-step-content">
+          <div class="flow-step-title"><span class="flow-step-icon">🎯</span>تحديد الفوكس</div>
+          <div class="flow-step-instruction">اسأل: "ما الشيء الأهم الذي تريد أن نعمل عليه اليوم؟" — ثم حدّد موضوع واحد واضح للجلسة.</div>
+          <div class="flow-step-note">⚡ لا تحاول حل كل شيء في جلسة واحدة</div>
+        </div>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="flow-step">
+        <div class="flow-step-left">
+          <div class="flow-step-num">3</div>
+          <div class="flow-connector"></div>
+        </div>
+        <div class="flow-step-content">
+          <div class="flow-step-title"><span class="flow-step-icon">🔍</span>الاستكشاف العميق</div>
+          <div class="flow-step-instruction">استخدم أسئلة قوية: "ما الذي يمنعك؟" / "ماذا سيحدث لو نجحت؟" / "من كنت ستصبح؟" — اكشف الجذر، لا السطح.</div>
+          <div class="flow-step-note">⚡ الفكرة المقيِّدة ≠ الحقيقة — ساعده على رؤية الفرق</div>
+        </div>
+      </div>
+
+      <!-- Step 4 -->
+      <div class="flow-step">
+        <div class="flow-step-left">
+          <div class="flow-step-num">4</div>
+          <div class="flow-connector"></div>
+        </div>
+        <div class="flow-step-content">
+          <div class="flow-step-title"><span class="flow-step-icon">💡</span>الاختراق والوضوح</div>
+          <div class="flow-step-instruction">ساعده على بناء وضوح جديد. عكس الرواية القديمة. اقترح إطاراً جديداً يخدم أهدافه — لكن دعه يصل إليه بنفسه.</div>
+        </div>
+      </div>
+
+      <!-- Step 5 -->
+      <div class="flow-step">
+        <div class="flow-step-left">
+          <div class="flow-step-num">5</div>
+          <div class="flow-connector"></div>
+        </div>
+        <div class="flow-step-content">
+          <div class="flow-step-title"><span class="flow-step-icon">⚡</span>الخطوات العملية</div>
+          <div class="flow-step-instruction">حدّد 2-3 خطوات صغيرة وواضحة تنتهي قبل الجلسة القادمة. خطوات يمكن قياسها، لا نوايا.</div>
+          <div class="flow-step-note">⚡ "ماذا ستفعل تحديداً وبحلول متى؟"</div>
+        </div>
+      </div>
+
+      <!-- Step 6 -->
+      <div class="flow-step">
+        <div class="flow-step-left">
+          <div class="flow-step-num">6</div>
+          <div class="flow-connector"></div>
+        </div>
+        <div class="flow-step-content">
+          <div class="flow-step-title"><span class="flow-step-icon">🏆</span>إغلاق الجلسة</div>
+          <div class="flow-step-instruction">لخّص التقدم. أبرز انتصاراً حقيقياً. أنهِ بجملة تعزز هوية العميل الجديدة وتشعله للجلسة القادمة.</div>
+          <div class="flow-step-note">⚡ "أنت لم تعد نفس الشخص الذي بدأ — هذا هو الفرق الحقيقي"</div>
+        </div>
+      </div>
+
+      <!-- Step 7 (final — no connector) -->
+      <div class="flow-step">
+        <div class="flow-step-left">
+          <div class="flow-step-num">7</div>
+        </div>
+        <div class="flow-step-content">
+          <div class="flow-step-title"><span class="flow-step-icon">📤</span>إرسال التقرير</div>
+          <div class="flow-step-instruction">أرسل ملخص الجلسة عبر واتساب: ما عملنا عليه + الخطوات التالية + رسالة تحفيزية. هذا يعزز الالتزام.</div>
+          <div class="flow-step-note">⚡ استخدم زر "نسخ رسالة واتساب" من داخل القسم</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     DELETE MODAL
+══════════════════════════════════════════ -->
+<div class="modal-backdrop" id="delete-modal">
+  <div class="modal-box">
+    <h3>🗑️ حذف العميل</h3>
+    <p id="delete-modal-msg">هل أنت متأكد من حذف هذا العميل؟ لا يمكن التراجع.</p>
+    <div class="modal-btns">
+      <button class="btn-modal btn-modal-cancel" onclick="closeDeleteModal()">إلغاء</button>
+      <button class="btn-modal btn-modal-confirm" onclick="confirmDelete()">حذف</button>
+    </div>
+  </div>
+</div>
+
+<footer class="page-footer">
+  Mario Aziz Framework — نظام الكوتشينج المتكامل
+</footer>
+
+
+<script type="module">
+/* ══════════════════════════════════════════════════════════════
+   FIREBASE IMPORTS
+══════════════════════════════════════════════════════════════ */
+import { initializeApp }                             from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js';
+import { getFirestore, collection, doc,
+         setDoc, updateDoc, deleteDoc,
+         onSnapshot, serverTimestamp,
+         getDoc }                                    from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js';
+
+/* ══════════════════════════════════════════════════════════════
+   FIREBASE INIT
+══════════════════════════════════════════════════════════════ */
+const firebaseConfig = {
+  apiKey:            'AIzaSyAtb2J7y8Wd4hE99ybuy90kMl1DmB4yrBM',
+  authDomain:        'mario-framework-289f9.firebaseapp.com',
+  projectId:         'mario-framework-289f9',
+  storageBucket:     'mario-framework-289f9.firebasestorage.app',
+  messagingSenderId: '528660083171',
+  appId:             '1:528660083171:web:50c88be9c3f1950bdd30d6'
+};
+
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
+
+/* ══════════════════════════════════════════════════════════════
+   FIRESTORE COLLECTION REFS
+   Structure:
+     /clients/{clientId}          — client meta (name, status, etc.)
+     /clients/{clientId}/data/session — session data (checkboxes, notes, metrics)
+══════════════════════════════════════════════════════════════ */
+const clientsCol = () => collection(db, 'clients');
+const clientDoc  = (id) => doc(db, 'clients', id);
+const dataDoc    = (id) => doc(db, 'clients', id, 'data', 'session');
+
+/* ══════════════════════════════════════════════════════════════
+   IN-MEMORY CACHE
+   Single source of truth in the browser. Firebase listener keeps
+   it updated; all reads come from here (zero extra Firestore reads).
+══════════════════════════════════════════════════════════════ */
+let _clientsCache = {};   // { [clientId]: clientObject }
+let _dataCache    = {};   // { [clientId]: sessionDataObject }
+let _unsubClients = null; // real-time listener unsubscribe fn
+
+/* ══════════════════════════════════════════════════════════════
+   CONNECTION STATE UI
+══════════════════════════════════════════════════════════════ */
+function setOnline(online) {
+  const dot = document.querySelector('.status-dot');
+  if (!dot) return;
+  if (online) {
+    dot.textContent = 'متصل بالسحابة';
+    dot.style.color = 'var(--green)';
+    dot.style.background = 'rgba(76,255,143,0.08)';
+    dot.style.borderColor = 'rgba(76,255,143,0.2)';
+  } else {
+    dot.textContent = 'جارٍ الاتصال...';
+    dot.style.color = 'var(--accent)';
+    dot.style.background = 'rgba(255,214,0,0.06)';
+    dot.style.borderColor = 'rgba(255,214,0,0.2)';
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   REAL-TIME LISTENER — CLIENTS COLLECTION
+   Fires on every remote change; updates cache and re-renders.
+══════════════════════════════════════════════════════════════ */
+function startClientsListener() {
+  if (_unsubClients) _unsubClients();
+  setOnline(false);
+
+  _unsubClients = onSnapshot(
+    clientsCol(),
+    { includeMetadataChanges: false },
+    (snapshot) => {
+      // Rebuild cache from snapshot
+      _clientsCache = {};
+      snapshot.forEach(d => { _clientsCache[d.id] = { id: d.id, ...d.data() }; });
+      setOnline(true);
+      renderClientsList();
+      // If a dashboard is open, refresh its progress display
+      if (currentClientId && _clientsCache[currentClientId]) {
+        updateOverallProgress();
+      }
+    },
+    (err) => {
+      console.error('Firestore clients listener error:', err);
+      setOnline(false);
+      showToast('⚠️ خطأ في الاتصال — يُرجى تحديث الصفحة');
+    }
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════
+   CACHE ACCESSORS (all synchronous — no async needed in UI)
+══════════════════════════════════════════════════════════════ */
+function loadClients() {
+  return Object.values(_clientsCache).sort((a, b) => {
+    // Sort by createdAt timestamp descending; fall back to name
+    const ta = a._createdMs || 0;
+    const tb = b._createdMs || 0;
+    return tb - ta;
+  });
+}
+
+function getClient(id) {
+  return _clientsCache[id] || null;
+}
+
+function getClientData(id) {
+  return _dataCache[id] ? { ..._dataCache[id] } : {};
+}
+
+/* ══════════════════════════════════════════════════════════════
+   DEBOUNCED WRITE QUEUE
+   Groups rapid field changes (typing, checkbox clicks) into
+   a single Firestore write per client after 600 ms of silence.
+══════════════════════════════════════════════════════════════ */
+const _writeTimers = {};
+
+function scheduleDataWrite(clientId, data) {
+  // Update cache immediately for snappy UI
+  _dataCache[clientId] = { ...(_dataCache[clientId] || {}), ...data };
+
+  clearTimeout(_writeTimers[clientId]);
+  _writeTimers[clientId] = setTimeout(async () => {
+    try {
+      await setDoc(dataDoc(clientId), _dataCache[clientId], { merge: true });
+    } catch (err) {
+      console.error('Data write error:', err);
+      showToast('⚠️ فشل الحفظ — يُرجى التحقق من الاتصال');
+    }
+  }, 600);
+}
+
+/* Write client meta (name, status, lastSession, etc.) immediately */
+async function writeClientMeta(clientId, fields) {
+  // Update cache first
+  if (_clientsCache[clientId]) {
+    _clientsCache[clientId] = { ..._clientsCache[clientId], ...fields };
+  }
+  try {
+    await updateDoc(clientDoc(clientId), fields);
+  } catch (err) {
+    console.error('Meta write error:', err);
+    showToast('⚠️ فشل حفظ بيانات العميل');
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   VIEW ROUTING
+══════════════════════════════════════════════════════════════ */
+function showView(id) {
+  ['view-clients', 'view-dashboard'].forEach(v => {
+    document.getElementById(v).style.display = v === id ? 'block' : 'none';
+  });
+  const mapBtn = document.getElementById('coach-map-btn');
+  if (id === 'view-dashboard') mapBtn.classList.add('visible');
+  else mapBtn.classList.remove('visible');
+}
+
+function goHome() {
+  currentClientId = null;
+  document.getElementById('header-client-badge').style.display = 'none';
+  showView('view-clients');
+  closeCoachMap();
+}
+
+/* ══════════════════════════════════════════════════════════════
+   CLIENTS LIST RENDER
+══════════════════════════════════════════════════════════════ */
+const STATUS_LABELS = {
+  'not-started': { label: 'لم تبدأ بعد', cls: 'status-not-started' },
+  'scheduled':   { label: '📅 مجدولة',   cls: 'status-scheduled'   },
+  'in-progress': { label: '🟢 جارية',    cls: 'status-in-progress' },
+  'completed':   { label: '✓ مكتملة',    cls: 'status-completed'   }
+};
+const STATUS_CYCLE = ['not-started', 'scheduled', 'in-progress', 'completed'];
+
+const PROGRESS_KEYS = [
+  'b2c1','b2c2','b2c3','b2c4','b3c1','b3c2','b3c3','b3c4',
+  'c1a','c1b','c1c','c2a','c2b','c2c','c3a','c3b',
+  'c4a','c4b','c5a','c5b','d1a','d1b','d1c','d1d','d1e'
+];
+
+function calcProgress(client) {
+  const data = _dataCache[client.id] || {};
+  const done = PROGRESS_KEYS.filter(k => data[k] === true).length;
+  return Math.round((done / PROGRESS_KEYS.length) * 100);
+}
+
+function renderClientsList() {
+  const grid = document.getElementById('clients-grid');
+  const clients = loadClients();
+
+  if (!clients.length) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+      <div class="empty-state-icon">👥</div>
+      <h3>لا يوجد عملاء بعد</h3>
+      <p>أضف أول عميل لك للبدء</p>
+    </div>`;
+    return;
+  }
+
+  grid.innerHTML = clients.map((c, i) => {
+    const pct      = calcProgress(c);
+    const status   = c.status || 'not-started';
+    const sInfo    = STATUS_LABELS[status] || STATUS_LABELS['not-started'];
+    const lastSess = c.lastSession ? `آخر جلسة: ${c.lastSession}` : 'لم تُجرَ جلسة بعد';
+    const initials = (c.name || '?').charAt(0).toUpperCase();
+    const linkHtml = c.clientLink
+      ? `<a href="${escAttr(c.clientLink)}" target="_blank" rel="noopener noreferrer"
+             class="cc-btn cc-link-btn cc-link-always"
+             onclick="event.stopPropagation()" title="فتح رابط العميل">🔗</a>`
+      : '';
+
+    return `<div class="client-card" onclick="openClientDashboard('${escAttr(c.id)}')"
+                 style="animation-delay:${i * 0.05}s">
+      <div class="cc-top">
+        <div class="cc-left">
+          <div class="cc-avatar">${escHtml(initials)}</div>
+        </div>
+        <div class="cc-actions">
+          ${linkHtml}
+          <button class="cc-btn cc-delete-btn"
+                  onclick="requestDelete('${escAttr(c.id)}',event)" title="حذف">✕</button>
+        </div>
+      </div>
+      <div class="cc-name">${escHtml(c.name)}</div>
+      <div class="cc-last-session">${escHtml(lastSess)}</div>
+      <div class="cc-status-badge ${sInfo.cls}"
+           onclick="cycleStatus('${escAttr(c.id)}',event)">${sInfo.label}</div>
+      <div class="cc-progress-label">
+        <span>التقدم</span><span>${pct}%</span>
+      </div>
+      <div class="cc-progress-track">
+        <div class="cc-progress-fill" style="width:${pct}%"></div>
+      </div>
+      <div class="cc-arrow">←</div>
+    </div>`;
+  }).join('');
+}
+
+/* ══════════════════════════════════════════════════════════════
+   ADD CLIENT
+══════════════════════════════════════════════════════════════ */
+async function addClient() {
+  const nameEl = document.getElementById('new-client-name');
+  const linkEl = document.getElementById('new-client-link');
+  const name   = nameEl.value.trim();
+  if (!name) { nameEl.focus(); return; }
+
+  const id    = 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+  const today = new Date().toLocaleDateString('ar-SA', { year: 'numeric', month: 'short', day: 'numeric' });
+  const now   = Date.now();
+
+  const clientData = {
+    name,
+    clientLink:   linkEl.value.trim(),
+    createdAt:    today,
+    _createdMs:   now,
+    lastSession:  null,
+    status:       'not-started',
+    updatedAt:    serverTimestamp()
+  };
+
+  // Optimistic cache update
+  _clientsCache[id] = { id, ...clientData };
+  nameEl.value = '';
+  linkEl.value = '';
+  renderClientsList();
+  showToast('✅ تمت إضافة العميل');
+
+  try {
+    await setDoc(clientDoc(id), clientData);
+  } catch (err) {
+    console.error('addClient error:', err);
+    delete _clientsCache[id];
+    renderClientsList();
+    showToast('⚠️ فشل إضافة العميل — حاول مجدداً');
+  }
+}
+
+function handleClientKey(e) {
+  if (e.key === 'Enter') addClient();
+}
+
+/* ══════════════════════════════════════════════════════════════
+   CYCLE STATUS
+══════════════════════════════════════════════════════════════ */
+function cycleStatus(id, e) {
+  e.stopPropagation();
+  const client = getClient(id);
+  if (!client) return;
+  const cur    = client.status || 'not-started';
+  const ci     = STATUS_CYCLE.indexOf(cur);
+  const next   = STATUS_CYCLE[(ci + 1) % STATUS_CYCLE.length];
+  writeClientMeta(id, { status: next, updatedAt: serverTimestamp() });
+}
+
+/* ══════════════════════════════════════════════════════════════
+   DELETE
+══════════════════════════════════════════════════════════════ */
+let pendingDeleteId = null;
+
+function requestDelete(id, e) {
+  e.stopPropagation();
+  pendingDeleteId = id;
+  const c = getClient(id);
+  document.getElementById('delete-modal-msg').textContent =
+    `هل أنت متأكد من حذف العميل "${c ? c.name : ''}"؟ لا يمكن التراجع.`;
+  document.getElementById('delete-modal').classList.add('open');
+}
+
+function closeDeleteModal() {
+  pendingDeleteId = null;
+  document.getElementById('delete-modal').classList.remove('open');
+}
+
+async function confirmDelete() {
+  if (!pendingDeleteId) return;
+  const id = pendingDeleteId;
+
+  // Optimistic removal
+  delete _clientsCache[id];
+  delete _dataCache[id];
+  closeDeleteModal();
+  renderClientsList();
+  showToast('🗑️ تم حذف العميل');
+
+  try {
+    // Delete session data sub-document then client document
+    await deleteDoc(dataDoc(id));
+    await deleteDoc(clientDoc(id));
+  } catch (err) {
+    console.error('Delete error:', err);
+    showToast('⚠️ فشل الحذف من السحابة — حاول مجدداً');
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   CLIENT DASHBOARD — OPEN
+══════════════════════════════════════════════════════════════ */
+let currentClientId = null;
+
+async function openClientDashboard(id) {
+  currentClientId = id;
+  const client = getClient(id);
+  if (!client) return;
+
+  showView('view-dashboard');
+
+  const badge = document.getElementById('header-client-badge');
+  badge.textContent   = '👤 ' + client.name;
+  badge.style.display = 'flex';
+
+  document.getElementById('dash-client-name').textContent =
+    client.name;
+  document.getElementById('dash-client-sub').textContent =
+    client.createdAt ? `عميل منذ: ${client.createdAt}` : '';
+
+  const linkBtn = document.getElementById('btn-client-link');
+  if (client.clientLink && client.clientLink.trim()) {
+    linkBtn.href         = client.clientLink;
+    linkBtn.style.display = 'flex';
+  } else {
+    linkBtn.style.display = 'none';
+  }
+
+  // Load session data — use cache if available, else fetch once from Firestore
+  if (!_dataCache[id]) {
+    try {
+      const snap = await getDoc(dataDoc(id));
+      _dataCache[id] = snap.exists() ? snap.data() : {};
+    } catch (err) {
+      console.error('Session data fetch error:', err);
+      _dataCache[id] = {};
+    }
+  }
+
+  loadClientDataIntoUI(_dataCache[id]);
+  showHome();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ══════════════════════════════════════════════════════════════
+   LOAD SESSION DATA INTO UI
+══════════════════════════════════════════════════════════════ */
+function loadClientDataIntoUI(data) {
+  data = data || {};
+
+  document.querySelectorAll('#view-dashboard input[type="checkbox"][data-key]').forEach(cb => {
+    cb.checked = data[cb.dataset.key] === true;
+  });
+  document.querySelectorAll('#view-dashboard textarea[data-key]').forEach(ta => {
+    ta.value = data[ta.dataset.key] || '';
+  });
+  document.querySelectorAll('#view-dashboard input[type="text"][data-key]').forEach(inp => {
+    inp.value = data[inp.dataset.key] || '';
+  });
+
+  const dateEl = document.getElementById('sched-date');
+  const timeEl = document.getElementById('sched-time');
+  if (dateEl) dateEl.value = data['sched-date'] || '';
+  if (timeEl) timeEl.value = data['sched-time'] || '';
+  updateSchedDisplay(data['sched-date'], data['sched-time']);
+
+  ['prog-b2','prog-b3','prog-c1','prog-c2','prog-c3','prog-c4','prog-c5','prog-d1'].forEach(pid => {
+    const el    = document.getElementById(pid);
+    if (!el) return;
+    const block = el.closest('.block');
+    const list  = block ? block.querySelector('.checklist') : null;
+    if (list) refreshProgress(pid, list);
+  });
+
+  updateOverallProgress();
+}
+
+/* ══════════════════════════════════════════════════════════════
+   FIELD SAVE HANDLERS  (all go through debounced write queue)
+══════════════════════════════════════════════════════════════ */
+function saveNote(ta) {
+  if (!currentClientId) return;
+  scheduleDataWrite(currentClientId, { [ta.dataset.key]: ta.value });
+}
+
+function saveMetric(inp) {
+  if (!currentClientId) return;
+  scheduleDataWrite(currentClientId, { [inp.dataset.key]: inp.value });
+}
+
+function onCheckChange(progId, list) {
+  if (!currentClientId) return;
+  const patch = {};
+  list.querySelectorAll('input[type="checkbox"][data-key]').forEach(cb => {
+    patch[cb.dataset.key] = cb.checked;
+  });
+  scheduleDataWrite(currentClientId, patch);
+  refreshProgress(progId, list);
+  updateOverallProgress();
+}
+
+/* ══════════════════════════════════════════════════════════════
+   PROGRESS DISPLAY
+══════════════════════════════════════════════════════════════ */
+function refreshProgress(progId, list) {
+  const total   = list.querySelectorAll('input[type="checkbox"]').length;
+  const checked = list.querySelectorAll('input[type="checkbox"]:checked').length;
+  const el      = document.getElementById(progId);
+  if (el) el.textContent = checked + ' / ' + total + ' مكتملة';
+}
+
+function updateOverallProgress() {
+  if (!currentClientId) return;
+  const client = getClient(currentClientId);
+  if (!client) return;
+  const pct = calcProgress(client);
+  const el  = document.getElementById('overall-prog-pct');
+  if (el) el.textContent = pct + '%';
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SESSION SCHEDULER
+══════════════════════════════════════════════════════════════ */
+function saveSched() {
+  if (!currentClientId) return;
+  const dateVal = document.getElementById('sched-date').value;
+  const timeVal = document.getElementById('sched-time').value;
+
+  scheduleDataWrite(currentClientId, { 'sched-date': dateVal, 'sched-time': timeVal });
+
+  if (dateVal) {
+    const d           = new Date(dateVal);
+    const lastSession = d.toLocaleDateString('ar-SA', { year: 'numeric', month: 'short', day: 'numeric' });
+    writeClientMeta(currentClientId, { lastSession, updatedAt: serverTimestamp() });
+  }
+
+  updateSchedDisplay(dateVal, timeVal);
+}
+
+function saveSchedExplicit() {
+  saveSched();
+  showToast('📅 تم حفظ موعد الجلسة');
+}
+
+function updateSchedDisplay(dateVal, timeVal) {
+  const msgEl  = document.getElementById('sched-saved-msg');
+  const textEl = document.getElementById('sched-saved-text');
+  const dispEl = document.getElementById('sched-display');
+
+  if (dateVal || timeVal) {
+    let txt = '';
+    if (dateVal) {
+      txt += new Date(dateVal).toLocaleDateString('ar-SA',
+        { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    }
+    if (timeVal) txt += (txt ? ' — ' : '') + timeVal;
+    if (textEl) textEl.textContent = txt;
+    if (msgEl)  msgEl.style.display = 'flex';
+    if (dispEl) dispEl.textContent  = txt;
+  } else {
+    if (msgEl)  msgEl.style.display = 'none';
+    if (dispEl) dispEl.textContent  = 'لم يتم التحديد بعد';
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SECTION / BLOCK NAVIGATION
+══════════════════════════════════════════════════════════════ */
+function showSection(id) {
+  document.getElementById('home-view').style.display = 'none';
+  document.querySelectorAll('.section-view').forEach(el => el.classList.remove('active'));
+  const target = document.getElementById(id);
+  if (!target) return;
+  target.classList.add('active');
+  const firstHeader = target.querySelector('.block-header');
+  if (firstHeader && !firstHeader.closest('.block').classList.contains('open')) {
+    firstHeader.closest('.block').classList.add('open');
+  }
+  target.querySelectorAll('.checklist').forEach(list => {
+    const progEl = list.closest('.block')?.querySelector('.block-progress');
+    if (progEl) refreshProgress(progEl.id, list);
+  });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function showHome() {
+  document.getElementById('home-view').style.display = 'grid';
+  document.querySelectorAll('.section-view').forEach(el => el.classList.remove('active'));
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function toggleBlock(header) {
+  header.closest('.block').classList.toggle('open');
+}
+
+/* ══════════════════════════════════════════════════════════════
+   COPY REPORT
+══════════════════════════════════════════════════════════════ */
+function getReportData() {
+  if (!currentClientId) return {};
+  const data = getClientData(currentClientId);
+  return {
+    sessionNotes: data['session-notes'] || '',
+    nextSteps:    data['next-steps']    || '',
+    clientName:   getClient(currentClientId)?.name || '—',
+  };
+}
+
+function copyFullReport() {
+  const { sessionNotes, nextSteps, clientName } = getReportData();
+  const date   = new Date().toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' });
+  const report = [
+    `العميل: ${clientName}`, `التاريخ: ${date}`, ``,
+    `🧠 ملخص الجلسة:`, sessionNotes || '(لا توجد ملاحظات)', ``,
+    `✅ الخطوات المتفق عليها:`, nextSteps || '(لا توجد خطوات)', ``,
+    `🔥 ملاحظة الكوتش:`,
+    `أنت على الطريق الصحيح. استمر في الالتزام وستصل إلى هدفك.`
+  ].join('\n');
+  copyToClipboard(report);
+}
+
+function copyWhatsApp() {
+  const { sessionNotes, nextSteps } = getReportData();
+  const msg = [
+    `🔥 تحديث من الكوتش:`, ``,
+    `✔️ ما عملنا عليه:`, sessionNotes || '(لا توجد ملاحظات)', ``,
+    `🎯 خطواتك التالية:`, nextSteps || '(لا توجد خطوات)', ``,
+    `💪 هيا. أنت على المسار الصحيح.`
+  ].join('\n');
+  copyToClipboard(msg);
+}
+
+function copyToClipboard(text) {
+  if (navigator.clipboard?.writeText) {
+    navigator.clipboard.writeText(text)
+      .then(()  => showToast('✅ تم النسخ بنجاح'))
+      .catch(()  => fallbackCopy(text));
+  } else {
+    fallbackCopy(text);
+  }
+}
+
+function fallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.cssText = 'position:fixed;opacity:0;pointer-events:none;';
+  document.body.appendChild(ta);
+  ta.focus(); ta.select();
+  try { document.execCommand('copy'); showToast('✅ تم النسخ بنجاح'); } catch(e) {}
+  document.body.removeChild(ta);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   COACH MAP
+══════════════════════════════════════════════════════════════ */
+function openCoachMap() {
+  document.getElementById('coach-map-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeCoachMap() {
+  document.getElementById('coach-map-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+/* ══════════════════════════════════════════════════════════════
+   FOCUS MODE
+══════════════════════════════════════════════════════════════ */
+function toggleFocusMode() {
+  document.body.classList.toggle('focus-mode');
+  document.getElementById('focus-toggle-btn').classList.toggle('active');
+}
+
+/* ══════════════════════════════════════════════════════════════
+   TOAST
+══════════════════════════════════════════════════════════════ */
+let toastTimer = null;
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2600);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   UTILS
+══════════════════════════════════════════════════════════════ */
+function escHtml(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function escAttr(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+/* ══════════════════════════════════════════════════════════════
+   EXPOSE FUNCTIONS CALLED FROM INLINE HTML ATTRIBUTES
+   (needed because this is a module — globals are scoped)
+══════════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════
+   NEXT CALL SCHEDULER (SECTION 02)
+══════════════════════════════════════════════════════════════ */
+function saveNextCall() {
+  const dateVal = document.getElementById('next-call-date')?.value || '';
+  const timeVal = document.getElementById('next-call-time')?.value || '';
+
+  const savedMsg  = document.getElementById('next-call-saved-msg');
+  const savedText = document.getElementById('next-call-saved-text');
+
+  if (dateVal || timeVal) {
+    let txt = '';
+    if (dateVal) {
+      txt += new Date(dateVal).toLocaleDateString('ar-SA',
+        { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    }
+    if (timeVal) txt += (txt ? ' — ' : '') + timeVal;
+
+    if (savedText) savedText.textContent = txt;
+    if (savedMsg)  savedMsg.style.display = 'flex';
+
+    // Push to global notification bar
+    const clientName = currentClientId
+      ? (getClient(currentClientId)?.name || 'العميل')
+      : 'العميل';
+    addGlobalNotification(`📞 مكالمة قادمة: ${clientName} - ${txt}`);
+
+    showToast('📞 تم حفظ ميعاد المكالمة التالية');
+  } else {
+    if (savedMsg) savedMsg.style.display = 'none';
+    showToast('⚠️ يرجى تحديد التاريخ أو الوقت أولاً');
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   GLOBAL NOTIFICATION BAR
+══════════════════════════════════════════════════════════════ */
+function addGlobalNotification(message) {
+  const bar = document.getElementById('global-notif-bar');
+  if (!bar) return;
+
+  bar.style.display = 'block';
+
+  const item = document.createElement('div');
+  item.className = 'notif-item';
+
+  const text = document.createElement('div');
+  text.className = 'notif-text';
+  text.textContent = message;
+
+  const btn = document.createElement('button');
+  btn.className = 'notif-dismiss';
+  btn.textContent = '✕ إغلاق';
+  btn.onclick = () => {
+    item.remove();
+    if (bar.querySelectorAll('.notif-item').length === 0) {
+      bar.style.display = 'none';
+    }
+  };
+
+  item.appendChild(text);
+  item.appendChild(btn);
+  bar.appendChild(item);
+}
+
+Object.assign(window, {
+  goHome, showView, addClient, handleClientKey,
+  openClientDashboard, cycleStatus,
+  requestDelete, closeDeleteModal, confirmDelete,
+  showSection, showHome, toggleBlock,
+  saveNote, saveMetric, onCheckChange,
+  saveSched, saveSchedExplicit,
+  saveNextCall,
+  addGlobalNotification,
+  copyFullReport, copyWhatsApp,
+  openCoachMap, closeCoachMap,
+  toggleFocusMode
+});
+
+/* ══════════════════════════════════════════════════════════════
+   INIT
+══════════════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+  showView('view-clients');
+  startClientsListener();          // begins real-time Firestore sync
+
+  document.getElementById('delete-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeDeleteModal();
+  });
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeCoachMap();
+  });
+});
+</script>
+
+</body>
+</html>
