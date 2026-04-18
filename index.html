@@ -938,40 +938,90 @@ body.focus-mode .cards-grid .main-card:not(.active-card) {
 }
 
 /* ══════════════════════════════════════════
-   GLOBAL NOTIFICATION BAR
+   UPCOMING CALLS BAR  (persistent)
 ══════════════════════════════════════════ */
 .global-notif-bar {
   position: sticky; top: 0; z-index: 110;
-  background: rgba(11,11,11,0.97);
-  border-bottom: 1px solid rgba(255,214,0,0.3);
+  background: rgba(11,11,11,0.98);
+  border-bottom: 2px solid rgba(255,214,0,0.35);
   padding: 0 24px;
-  display: flex; flex-direction: column; gap: 0;
-  backdrop-filter: blur(12px);
+  display: flex; flex-direction: column;
+  backdrop-filter: blur(16px);
 }
+
+/* individual call row */
 .notif-item {
   display: flex; align-items: center; gap: 12px;
-  padding: 10px 0;
-  border-bottom: 1px solid rgba(255,214,0,0.08);
+  padding: 11px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
   animation: fadeUp 0.3s ease both;
+  transition: opacity 0.4s ease, max-height 0.4s ease;
+  overflow: hidden; max-height: 80px;
 }
 .notif-item:last-child { border-bottom: none; }
-.notif-icon { font-size: 16px; flex-shrink: 0; }
+.notif-item.completing {
+  opacity: 0; max-height: 0; padding: 0;
+}
+
+/* today badge */
+.notif-today-badge {
+  display: inline-flex; align-items: center;
+  background: rgba(255,214,0,0.18);
+  border: 1px solid rgba(255,214,0,0.4);
+  color: var(--accent);
+  font-size: 9px; font-weight: 800;
+  letter-spacing: 1px; text-transform: uppercase;
+  border-radius: 20px; padding: 2px 8px;
+  flex-shrink: 0;
+  animation: blink 2.5s infinite;
+}
+
 .notif-text {
   flex: 1;
   font-size: 13px; font-weight: 700;
   color: var(--accent);
-  direction: rtl;
+  direction: rtl; line-height: 1.5;
 }
+.notif-text .notif-client { font-size: 15px; font-weight: 900; }
+.notif-text .notif-datetime { font-size: 11px; color: rgba(255,214,0,0.7); margin-top: 1px; }
+
+/* action buttons group */
+.notif-actions { display: flex; gap: 7px; flex-shrink: 0; }
+
+/* Done button — primary action */
+.notif-done {
+  display: flex; align-items: center; gap: 5px;
+  background: var(--accent); color: #0B0B0B;
+  border: none; border-radius: 7px;
+  font-family: 'Tajawal', sans-serif;
+  font-size: 12px; font-weight: 800;
+  padding: 6px 13px; cursor: pointer;
+  transition: all 0.2s; flex-shrink: 0;
+}
+.notif-done:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px var(--glow);
+}
+.notif-done:active { transform: translateY(0); }
+
+/* Dismiss (X) — secondary */
 .notif-dismiss {
-  background: rgba(255,214,0,0.1);
-  border: 1px solid rgba(255,214,0,0.2);
-  border-radius: 6px; color: var(--accent);
-  font-size: 11px; font-weight: 700;
-  padding: 4px 10px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 7px; color: var(--text-3);
+  font-size: 12px; cursor: pointer;
   transition: all 0.2s; flex-shrink: 0;
   font-family: 'Tajawal', sans-serif;
 }
-.notif-dismiss:hover { background: rgba(255,214,0,0.25); }
+.notif-dismiss:hover { border-color: var(--red); color: var(--red); background: rgba(255,76,76,0.1); }
+
+@media (max-width: 600px) {
+  .global-notif-bar { padding: 0 14px; }
+  .notif-text .notif-client { font-size: 13px; }
+  .notif-done { font-size: 11px; padding: 5px 10px; }
+}
 
 /* ══════════════════════════════════════════
    NEXT CALL SCHEDULER (IN SECTION 02)
@@ -2128,8 +2178,34 @@ function escAttr(s) {
    (needed because this is a module — globals are scoped)
 ══════════════════════════════════════════════════════════════ */
 /* ══════════════════════════════════════════════════════════════
-   NEXT CALL SCHEDULER (SECTION 02)
+   UPCOMING CALLS — PERSISTENT STORAGE ENGINE
+   Uses localStorage so calls survive page refresh.
+   NO timers. NO auto-removal. Only "Done" removes a call.
 ══════════════════════════════════════════════════════════════ */
+const CALLS_KEY = 'mario_upcoming_calls_v1';
+
+function callsLoad() {
+  try { return JSON.parse(localStorage.getItem(CALLS_KEY) || '[]'); }
+  catch(e) { return []; }
+}
+function callsSave(arr) {
+  localStorage.setItem(CALLS_KEY, JSON.stringify(arr));
+}
+function callsUID() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+}
+
+/* Check if a stored date string is today */
+function callIsToday(dateStr) {
+  if (!dateStr) return false;
+  const today = new Date();
+  const d     = new Date(dateStr);
+  return d.getFullYear() === today.getFullYear()
+      && d.getMonth()    === today.getMonth()
+      && d.getDate()     === today.getDate();
+}
+
+/* ── Save a new upcoming call (called from the scheduler button) ── */
 function saveNextCall() {
   const dateVal = document.getElementById('next-call-date')?.value || '';
   const timeVal = document.getElementById('next-call-time')?.value || '';
@@ -2137,59 +2213,126 @@ function saveNextCall() {
   const savedMsg  = document.getElementById('next-call-saved-msg');
   const savedText = document.getElementById('next-call-saved-text');
 
-  if (dateVal || timeVal) {
-    let txt = '';
-    if (dateVal) {
-      txt += new Date(dateVal).toLocaleDateString('ar-SA',
-        { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-    }
-    if (timeVal) txt += (txt ? ' — ' : '') + timeVal;
-
-    if (savedText) savedText.textContent = txt;
-    if (savedMsg)  savedMsg.style.display = 'flex';
-
-    // Push to global notification bar
-    const clientName = currentClientId
-      ? (getClient(currentClientId)?.name || 'العميل')
-      : 'العميل';
-    addGlobalNotification(`📞 مكالمة قادمة: ${clientName} - ${txt}`);
-
-    showToast('📞 تم حفظ ميعاد المكالمة التالية');
-  } else {
-    if (savedMsg) savedMsg.style.display = 'none';
+  if (!dateVal && !timeVal) {
     showToast('⚠️ يرجى تحديد التاريخ أو الوقت أولاً');
+    return;
+  }
+
+  // Build human-readable label
+  let txt = '';
+  if (dateVal) {
+    txt += new Date(dateVal).toLocaleDateString('ar-SA',
+      { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  }
+  if (timeVal) txt += (txt ? ' — ' : '') + timeVal;
+
+  if (savedText) savedText.textContent = txt;
+  if (savedMsg)  savedMsg.style.display = 'flex';
+
+  // Persist to localStorage
+  const clientName = currentClientId
+    ? (getClient(currentClientId)?.name || 'العميل')
+    : 'العميل';
+
+  const entry = {
+    id:         callsUID(),
+    clientName,
+    dateStr:    dateVal,
+    timeStr:    timeVal,
+    label:      txt,
+    savedAt:    Date.now(),
+    done:       false
+  };
+
+  const all = callsLoad();
+  all.unshift(entry);
+  callsSave(all);
+
+  // Re-render the bar so the new call appears immediately
+  renderCallsBar();
+
+  showToast('📞 تم حفظ ميعاد المكالمة التالية');
+}
+
+/* ── Mark a call as Done (animated removal) ── */
+function markCallDone(id) {
+  const item = document.querySelector(`.notif-item[data-call-id="${id}"]`);
+  if (item) {
+    item.classList.add('completing');
+    setTimeout(() => {
+      // Remove from storage after animation
+      const filtered = callsLoad().filter(c => c.id !== id);
+      callsSave(filtered);
+      renderCallsBar();
+    }, 420);
+  } else {
+    const filtered = callsLoad().filter(c => c.id !== id);
+    callsSave(filtered);
+    renderCallsBar();
   }
 }
 
-/* ══════════════════════════════════════════════════════════════
-   GLOBAL NOTIFICATION BAR
-══════════════════════════════════════════════════════════════ */
-function addGlobalNotification(message) {
-  const bar = document.getElementById('global-notif-bar');
+/* ── Dismiss (hide for this session only, does NOT delete) ── */
+function dismissCall(id) {
+  // Mark as dismissed in storage so it won't show again unless re-scheduled
+  const all = callsLoad().map(c => c.id === id ? { ...c, done: true } : c);
+  callsSave(all);
+
+  const item = document.querySelector(`.notif-item[data-call-id="${id}"]`);
+  if (item) {
+    item.classList.add('completing');
+    setTimeout(() => renderCallsBar(), 420);
+  } else {
+    renderCallsBar();
+  }
+}
+
+/* ── Render all pending (not done) calls into the bar ── */
+function renderCallsBar() {
+  const bar   = document.getElementById('global-notif-bar');
   if (!bar) return;
 
-  bar.style.display = 'block';
+  const calls = callsLoad().filter(c => !c.done);
 
-  const item = document.createElement('div');
-  item.className = 'notif-item';
+  if (calls.length === 0) {
+    bar.style.display = 'none';
+    bar.innerHTML = '';
+    return;
+  }
 
-  const text = document.createElement('div');
-  text.className = 'notif-text';
-  text.textContent = message;
+  bar.style.display = 'flex';
+  bar.innerHTML = '';
 
-  const btn = document.createElement('button');
-  btn.className = 'notif-dismiss';
-  btn.textContent = '✕ إغلاق';
-  btn.onclick = () => {
-    item.remove();
-    if (bar.querySelectorAll('.notif-item').length === 0) {
-      bar.style.display = 'none';
-    }
-  };
+  calls.forEach(call => {
+    const isToday = callIsToday(call.dateStr);
 
-  item.appendChild(text);
-  item.appendChild(btn);
-  bar.appendChild(item);
+    const item = document.createElement('div');
+    item.className = 'notif-item';
+    item.dataset.callId = call.id;
+
+    // Today badge
+    const todayBadge = isToday
+      ? `<span class="notif-today-badge">📅 اليوم</span>`
+      : '';
+
+    item.innerHTML = `
+      ${todayBadge}
+      <div class="notif-text">
+        <div class="notif-client">📞 ${escHtml(call.clientName)}</div>
+        <div class="notif-datetime">${escHtml(call.label)}</div>
+      </div>
+      <div class="notif-actions">
+        <button class="notif-done"   onclick="markCallDone('${call.id}')">✓ تم</button>
+        <button class="notif-dismiss" onclick="dismissCall('${call.id}')" title="إخفاء">✕</button>
+      </div>`;
+
+    bar.appendChild(item);
+  });
+}
+
+/* ── Legacy shim so old code paths don't break ── */
+function addGlobalNotification(message) {
+  // No-op: replaced by saveNextCall → renderCallsBar pipeline
 }
 
 Object.assign(window, {
@@ -2199,7 +2342,7 @@ Object.assign(window, {
   showSection, showHome, toggleBlock,
   saveNote, saveMetric, onCheckChange,
   saveSched, saveSchedExplicit,
-  saveNextCall,
+  saveNextCall, markCallDone, dismissCall,
   addGlobalNotification,
   copyFullReport, copyWhatsApp,
   openCoachMap, closeCoachMap,
@@ -2212,6 +2355,9 @@ Object.assign(window, {
 document.addEventListener('DOMContentLoaded', () => {
   showView('view-clients');
   startClientsListener();          // begins real-time Firestore sync
+
+  // Restore persisted upcoming calls on every page load
+  renderCallsBar();
 
   document.getElementById('delete-modal').addEventListener('click', function(e) {
     if (e.target === this) closeDeleteModal();
